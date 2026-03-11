@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Промптинг для Loom — руководство</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000000;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #ffffff;
+            line-height: 1.5;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 2.5rem;
+            background: linear-gradient(135deg, #4aa8ff 0%, #00e0ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin: 2.5rem 0 1.2rem 0;
+            color: #ffffff;
+            border-bottom: 2px solid #2a2a2a;
+            padding-bottom: 0.4rem;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin: 1.8rem 0 0.8rem 0;
+            color: #00d0ff;
+        }
+
+        .card {
+            background-color: #1e1e1e;
+            border-radius: 16px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            border: 1px solid #2d2d2d;
+            box-shadow: 0 10px 30px -10px rgba(0, 200, 255, 0.1);
+        }
+
+        .prompt-block {
+            background-color: #141414;
+            border-radius: 14px;
+            padding: 1.4rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid #00b8ff;
+            position: relative;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            text-indent: 0;
+        }
+
+        .prompt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            color: #00b8ff;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #808080;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            border-radius: 40px;
+            background-color: #2a2a2a;
+        }
+
+        .copy-btn:hover {
+            color: #00c3ff;
+            background-color: #333;
+        }
+
+        .copy-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1a1a1a;
+            border-radius: 14px;
+            overflow: hidden;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #00b8ff;
+            color: #000;
+            font-weight: 600;
+            padding: 12px 10px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #2d2d2d;
+            color: #dddddd;
+            text-align: left;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td:first-child {
+            font-family: 'Fira Code', monospace;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .accent-badge {
+            display: inline-block;
+            background-color: #004466;
+            color: #a0e0ff;
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .checklist li {
+            margin-bottom: 0.7rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            text-indent: 0;
+        }
+
+        .checklist li::before {
+            content: "✓";
+            color: #00d0ff;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: #2a2a2a;
+            margin: 1.5rem 0;
+        }
+
+        .prompt-block p {
+            margin: 0;
+            text-indent: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📹 Промптинг для Loom</h1>
+
+        <!-- СТРУКТУРА (обновлённая: продукт как референс) -->
+        <h2>📐 Универсальная структура промпта (англ.)</h2>
+        <div class="card">
+            <div class="prompt-header">
+                <span>⭐ STRUCTURE (product = reference image)</span>
+                <button class="copy-btn" onclick="copyToClipboard('structure-template', this)"><svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Копировать</button>
+            </div>
+            <div id="structure-template" class="prompt-block">
+【STYLE】 [visual style + realism + texture]  
+【DURATION】 15 seconds  
+【SUBJECT】 Facial features reference @Image 1, [hair, clothing, skin, mood]  
+【SETTING】 [location + time + lighting + atmosphere]  
+【PRODUCT】 Energy drink can – reference @Image 2 (separate asset). Must be integrated naturally with correct perspective, lighting, and held by the model.  
+【ACTION SEQUENCE】  
+[00:00-00:XX] Shot 1: [angle/shot] – [action] – [expression]  
+[00:XX-00:XX] Shot 2: [angle/shot] – [action with product, can appears] – [expression]  
+[00:XX-00:XX] Shot 3: [angle/shot] – [action holding can] – [expression]  
+[00:XX-00:15] Shot 4: [angle/shot] – [final product moment, can visible] – [expression]  
+【CAMERA】 [camera type + movement + features]  
+【AUDIO】 [music + ambient + action sounds] – NO VOCALS, NO CAPTIONS  
+【PROHIBITIONS】 No text, no logos, no watermarks, no subtitles.
+            </div>
+        </div>
+
+        <!-- ЗАПОЛНЕНИЕ БЛОКОВ (русские пояснения) -->
+        <h2>✍️ Как заполнять блоки (русский / english)</h2>
+        <div class="grid-2">
+            <div class="card">
+                <h3>🎞️ STYLE</h3>
+                <p><span class="accent-badge">обязательно</span> photorealistic, skin texture, no beauty filter, handheld/static</p>
+                <p><em>Пример:</em></p>
+                <div class="prompt-block" style="font-family: inherit;">Photorealistic, iPhone front-camera texture, natural lighting, skin pores visible, no beauty filters, handheld natural shake, authentic everyday feel.</div>
+            </div>
+            <div class="card">
+                <h3>👤 SUBJECT</h3>
+                <p><span class="accent-badge">@Image 1</span> + hair, makeup, clothes, skin, mood</p>
+                <p><em>Пример:</em></p>
+                <div class="prompt-block" style="font-family: inherit;">Facial features reference @Image 1, long wavy brown hair loose, minimal makeup, dewy skin, wearing oversized white t-shirt, sleepy cute expression.</div>
+            </div>
+        </div>
+
+        <!-- ТАБЛИЦА РАКУРСОВ -->
+        <h2>🎥 Ракурсы, планы, движение камеры</h2>
+        <div class="card">
+            <div class="table-wrap">
+                <table>
+                    <tr><th>English term (для промпта)</th><th>Перевод</th><th>Когда использовать</th></tr>
+                    <tr><td>Extreme wide shot</td><td>Сверхширокий план</td><td>Установка локации</td></tr>
+                    <tr><td>Wide shot / Full shot</td><td>Общий / полный план</td><td>Модель целиком, вход/выход</td></tr>
+                    <tr><td>Medium shot</td><td>Средний план (по пояс)</td><td>Основное действие</td></tr>
+                    <tr><td>Medium close-up</td><td>Средне-крупный (по грудь)</td><td>Эмоции, разговор</td></tr>
+                    <tr><td>Close-up</td><td>Крупный план</td><td>Лицо, продукт</td></tr>
+                    <tr><td>Extreme close-up</td><td>Сверхкрупный</td><td>Глаза, губы, банка у губ</td></tr>
+                    <tr><td>Eye level</td><td>На уровне глаз</td><td>Доверительный контакт</td></tr>
+                    <tr><td>Low angle</td><td>Снизу вверх</td><td>Уверенность, спорт</td></tr>
+                    <tr><td>High angle</td><td>Сверху вниз</td><td>Нежность, уют</td></tr>
+                    <tr><td>POV / Selfie POV</td><td>От первого лица</td><td>Селфи, погружение</td></tr>
+                    <tr><td>Over-the-shoulder</td><td>Из-за плеча</td><td>Вовлечение</td></tr>
+                    <tr><td>Handheld</td><td>Съёмка с рук</td><td>Живость, документальность</td></tr>
+                    <tr><td>Push in</td><td>Наезд камеры</td><td>Усиление внимания</td></tr>
+                    <tr><td>Pull back</td><td>Отъезд</td><td>Завершение</td></tr>
+                    <tr><td>Follow</td><td>Следование</td><td>Динамика</td></tr>
+                    <tr><td>Rack focus</td><td>Смена фокуса</td><td>Акцент с лица на продукт</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4 СЦЕНАРИЯ -->
+        <h2>📅 4 рабочих сценария (15 секунд)</h2>
+        <div class="grid-2">
+            <div class="card"><strong>🌅 Утро (спальня)</strong><br>0-4 Medium shot: просыпается<br>4-8 Close-up: берёт банку @2<br>8-12 Medium close-up: у лица<br>12-15 Extreme close-up: пьёт, улыбается</div>
+            <div class="card"><strong>🏋️ После тренировки</strong><br>0-4 Wide: вытирает пот<br>4-8 Close-up: достаёт банку @2<br>8-12 Medium: открывает<br>12-15 Extreme: пьёт, выдох</div>
+            <div class="card"><strong>🌆 Город/улица</strong><br>0-4 Full: идёт, банка @2 сбоку<br>4-8 Medium: останавливается<br>8-12 Close-up: открывает, пьёт<br>12-15 Medium: тост с камерой</div>
+            <div class="card"><strong>💄 Сборы (грим)</strong><br>0-4 Medium: красится, банка @2 на столе<br>4-8 Close-up: берёт банку<br>8-12 Medium: пьёт и красится<br>12-15 Close-up: с банкой у лица</div>
+        </div>
+
+        <!-- ПРОДУКТ как РЕФЕРЕНС + МУЗЫКА -->
+        <h2>🥤 PRODUCT (отдельный референс @Image 2) и 🎵 MUSIC</h2>
+        <div class="card">
+            <p><span class="accent-badge">критически важно</span> Всегда указывайте, что банка — это <strong>референс-изображение @Image 2</strong>.</p>
+            <div class="prompt-block" id="product-example">
+PRODUCT: Energy drink can – reference @Image 2 (separate asset). Must be held by the model, integrated with correct perspective, lighting, and shadows matching the environment. The can should look like a physical object in the scene.
+            </div>
+            <button class="copy-btn" style="margin-top:0.5rem;" onclick="copyToClipboard('product-example', this)"><svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Копировать описание банки (референс)</button>
+
+            <h3 style="margin-top:2rem;">Музыка: шаблон описания</h3>
+            <div class="prompt-block" id="music-example">
+AUDIO: [Genre] music, [mood] vibe, [tempo] tempo, [dynamics]. Natural ambient sounds: [location sounds]. Action sounds: [sip, open can]. No vocals, no captions.
+            </div>
+            <button class="copy-btn" onclick="copyToClipboard('music-example', this)"><svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Копировать шаблон музыки</button>
+        </div>
+
+        <!-- ЧЕК-ЛИСТ -->
+        <h2>✅ Чек-лист перед отправкой</h2>
+        <div class="card">
+            <ul class="checklist">
+                <li>STYLE — photorealistic + skin texture + no beauty filter + тип камеры</li>
+                <li>SUBJECT — есть @Image 1 + детали одежды/прически/настроение</li>
+                <li>SETTING — конкретная локация + освещение + атмосфера</li>
+                <li>PRODUCT — обязательно указание @Image 2 (отдельный референс) + требование интеграции</li>
+                <li>ACTION — 4 сцены с таймкодами, в каждой ракурс+действие+эмоция</li>
+                <li>PRODUCT MOMENTS — минимум 2 сцены с банкой (как отдельным референсом)</li>
+                <li>CAMERA — тип + движение + особенности (micro-shake, focus)</li>
+                <li>AUDIO — музыка (жанр, темп, настроение) + ambient + action sounds</li>
+                <li>PROHIBITIONS — No text, no logos, no watermarks, no subtitles</li>
+                <li>ФИНАЛЬНЫЙ КАДР — банка @2 + позитивная эмоция крупно</li>
+            </ul>
+        </div>
+
+        <!-- 3 ПРИМЕРА -->
+        <h2>📦 Готовые промпты (примеры)</h2>
+
+        <!-- ПРИМЕР 1 -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin:0;">☀️ Пример 1: Утро в спальне (банка @2)</h3>
+                <button class="copy-btn" onclick="copyToClipboard('prompt1', this)"><svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Копировать</button>
+            </div>
+            <div id="prompt1" class="prompt-block">
+【STYLE】 Photorealistic, iPhone front-camera texture, natural morning light, skin texture visible, no beauty filters, handheld natural shake, authentic everyday feel.
+【DURATION】 15 seconds
+【SUBJECT】 Facial features reference @Image 1, long wavy brown hair loose, minimal fresh makeup, dewy skin, wearing oversized white t-shirt, sleepy cute expression.
+【SETTING】 Cozy bedroom morning, warm sunlight through white curtains, soft tones, slightly messy bed, wooden bedside table with lamp.
+【PRODUCT】 Energy drink can – reference @Image 2 (separate asset). Must be integrated naturally, held by model, with correct perspective and morning lighting.
+【ACTION SEQUENCE】
+[00:00-00:04] Shot 1 – Medium shot, eye level, static micro-shake: sits up, stretches, yawns. Expression: sleepy.
+[00:04-00:08] Shot 2 – Close-up, low angle: hand reaches frame, picks up can @2. Expression: curious.
+[00:08-00:12] Shot 3 – Medium close-up, slow push-in: brings can to face, smiles softly. Expression: sweet.
+[00:12-00:15] Shot 4 – Extreme close-up, eye level: sip, eyes close, opens eyes, smiles to camera. Can @2 near chin.
+【CAMERA】 iPhone front-cam, handheld, propped on table, subtle micro-shake, occasional focus shift.
+【AUDIO】 Soft indie pop, warm cozy vibe, medium tempo, builds at 8s. Birds, sheets rustle. Audible sip, satisfied exhale. No vocals.
+【PROHIBITIONS】 No text, no logos, no watermarks, no subtitles.
+            </div>
+        </div>
+
+        <!-- ПРИМЕР 2 -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin:0;">🏋️ Пример 2: После тренировки (банка @2)</h3>
+                <button class="copy-btn" onclick="copyToClipboard('prompt2', this)"><svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Копировать</button>
+            </div>
+            <div id="prompt2" class="prompt-block">
+【STYLE】 Photorealistic, iPhone texture, golden hour, skin sweat visible, no beauty filter, handheld, authentic active feel.
+【DURATION】 15 seconds
+【SUBJECT】 Facial features reference @Image 1, messy ponytail, damp strands, minimal makeup, sweaty skin, black sports bra & leggings.
+【SETTING】 Rooftop gym at golden hour, sunset light, city skyline blurred, concrete floor.
+【PRODUCT】 Energy drink can – reference @Image 2. Must be held naturally, with condensation look, matching golden hour light.
+【ACTION SEQUENCE】
+[00:00-00:04] Shot 1 – Full shot, low angle, follow: walks toward camera, wipes forehead. Expression: tired but satisfied.
+[00:04-00:08] Shot 2 – Medium shot: sits, picks up can @2. Expression: anticipating.
+[00:08-00:12] Shot 3 – Close-up, over-shoulder: opens can (pop), brings to face, deep breath. Expression: refreshing.
+[00:12-00:15] Shot 4 – Extreme close-up, eye level: long sip, swallows, opens eyes wide, smiles, holds can @2 near face.
+【CAMERA】 Handheld, slight lens flare, occasional focus adjustment.
+【AUDIO】 Upbeat electronic, energetic, medium-fast. City traffic, wind. Can opening, sip, exhale. No vocals.
+【PROHIBITIONS】 No text, no logos, no watermarks.
+            </div>
+        </div>
+
+        <!-- ПРИМЕР 3 -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin:0;">🌃 Пример 3: Город, ночь (банка @2)</h3>
+                <button class="copy-btn" onclick="copyToClipboard('prompt3', this)"><svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Копировать</button>
+            </div>
+            <div id="prompt3" class="prompt-block">
+【STYLE】 Photorealistic, POV front-cam, night neon + warm shop lights, slight overexposure, skin texture, handheld shake, authentic urban night.
+【DURATION】 15 seconds
+【SUBJECT】 Facial features reference @Image 1, wavy shoulder hair down, fresh face with tinted balm, oversized denim jacket over crop top, confident cool vibe.
+【SETTING】 Busy city street at night, neon signs, warm stall lights, blurred crowd.
+【PRODUCT】 Energy drink can – reference @Image 2. Must reflect neon/ambient lighting, held casually, integrated as physical object.
+【ACTION SEQUENCE】
+[00:00-00:04] Shot 1 – Full shot, POV selfie, backward walk: holds can @2 at side, looks back at city. Expression: playful.
+[00:04-00:08] Shot 2 – Medium shot, low angle: leans on wall, raises can against neon. Expression: teasing.
+[00:08-00:12] Shot 3 – Close-up, eye level: opens can, sips, looks to camera. Expression: pleasantly surprised.
+[00:12-00:15] Shot 4 – Medium close-up, static: brings can to lips, pauses, toasts, final smile. City lights bokeh, can @2 visible.
+【CAMERA】 Single-hand held selfie POV, wrist shake, autofocus adjusts to neon.
+【AUDIO】 Cool hip-hop beat, confident urban vibe, medium tempo constant. City traffic, steps. Can opening, sip. No vocals.
+【PROHIBITIONS】 No text, no logos, no watermarks.
+            </div>
+        </div>
+
+        <!-- ШПАРГАЛКИ -->
+        <h2>⚡ Быстрые шпаргалки (копируй и вставляй)</h2>
+        <div class="grid-2">
+            <div class="card">
+                <strong>STYLE</strong>
+                <div class="prompt-block" id="cheat-style">Photorealistic, iPhone front-camera texture, [natural/golden/neon] lighting, skin texture visible, no beauty filters, [handheld/static micro-shake], authentic feel.</div>
+                <button class="copy-btn" onclick="copyToClipboard('cheat-style', this)">📋 Копировать</button>
+            </div>
+            <div class="card">
+                <strong>SUBJECT</strong>
+                <div class="prompt-block" id="cheat-subject">Facial features reference @Image 1, [hair], [makeup] makeup, [skin] skin, wearing [clothes], [mood] expression.</div>
+                <button class="copy-btn" onclick="copyToClipboard('cheat-subject', this)">📋 Копировать</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(elementId, btnElement) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnElement.innerHTML;
+                btnElement.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Скопировано!';
+                btnElement.style.color = '#00ffaa';
+                setTimeout(() => {
+                    btnElement.innerHTML = originalText;
+                    btnElement.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                alert('Ошибка копирования, выделите вручную');
+            });
+        }
+    </script>
+</body>
+</html>
